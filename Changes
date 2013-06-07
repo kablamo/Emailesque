@@ -3,8 +3,14 @@ Changes from 2012-06-07 00:00:00 +0000 to present.
 ==================================================
 
 ---------------------------------------------
-version 1.200000 at 2013-06-07 13:09:26 +0000
+version 1.200000 at 2013-06-07 13:12:00 +0000
 ---------------------------------------------
+
+  Change: d22c43ad2351ea94a672e2c2d29a41bcb98d7e5c
+  Author: Al Newkirk <anewkirk@ana.io>
+  Date : 2013-06-07 09:11:42 +0000
+
+    refactored to use Email::Stuffer 
 
   Change: a395795609fb9d8efdee712b129f2d531797a968
   Author: Al Newkirk & Associates <github@alnewkirk.com>
