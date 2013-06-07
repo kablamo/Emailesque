@@ -1,5 +1,6 @@
-package Emailesque;
 # ABSTRACT: Lightweight To-The-Point Email
+
+package Emailesque;
 
 BEGIN {
     use Exporter();
@@ -9,69 +10,71 @@ BEGIN {
 }
 
 use Hash::Merge;
-use Email::Stuff;
+use Email::Stuffer;
 use Email::AddressParser;
 
-# use Data::Dumper qw/Dumper/;
-
 sub new { 
+
     my $class  = shift;
     my $params = shift;
     
     $params->{driver} = 'sendmail' unless defined $params->{driver};
-    # $params->{path}   = '/usr/bin/sendmail' unless defined $params->{path};
     
-    my $self   = { settings => $params };
-    bless $self, $class; 
-    return $self;
+    return bless { settings => $params }, $class;
+
 }
 
 sub email {
+
     return Emailesque->new(@_)->send({});
+
 }
 
 sub send {
-    my ($this, $options, @arguments)  = @_;
-    my $self = Email::Stuff->new;
-    my $settings = $this->{settings};
-    #$options = Hash::Merge->new( 'LEFT_PRECEDENT' )->merge($settings, $options);
-    $options = Hash::Merge->new( 'LEFT_PRECEDENT' )->merge($options, $settings); # requested by igor.bujna@post.cz
+
+    my ($self, $options, @arguments)  = @_;
+    my $stuff = Email::Stuff->new;
+    my $settings = $self->{settings};
+
+    $options = Hash::Merge->new( 'LEFT_PRECEDENT' )->merge($options, $settings);
+    # requested by igor.bujna@post.cz
     
-    die "cannot send mail without a sender, recipient, subject and message" unless
-        $options->{to} && $options->{from} && $options->{subject} && $options->{message};
+    die "cannot send mail without a sender, recipient, subject and message"
+        unless $options->{to} && $options->{from} && 
+               $options->{subject} && $options->{message};
     
     # process to
     if ($options->{to}) {
-        $self->to(
-        join ",", map { $_->format } Email::AddressParser->parse( $options->{to} ) );
+        $stuff->to(join ",",
+            map { $_->format } Email::AddressParser->parse($options->{to}));
     }
     
     # process from
     if ($options->{from}) {
-        $self->from(
-        join ",", map { $_->format } Email::AddressParser->parse( $options->{from} ) );
+        $stuff->from(join ",",
+            map { $_->format } Email::AddressParser->parse($options->{from}));
     }
     
     # process cc
     if ($options->{cc}) {
-        $self->cc(
-        join ",",  map { $_->format } Email::AddressParser->parse( $options->{cc} ) );
+        $stuff->cc(join ",",
+            map { $_->format } Email::AddressParser->parse($options->{cc}));
     }
     
     # process bcc
     if ($options->{bcc}) {
-        $self->bcc(
-        join ",",  map { $_->format } Email::AddressParser->parse( $options->{bcc} ) );
+        $stuff->bcc(join ",",
+            map { $_->format } Email::AddressParser->parse($options->{bcc}));
     }
     
     # process reply_to
     if ($options->{reply_to}) {
-        $self->header("Return-Path" => $options->{reply_to});
+        $stuff->header("Return-Path" => $options->{reply_to});
     }
     
     # process subject
     if ($options->{subject}) {
-        $self->subject($options->{subject});
+        $stuff->subject($options->{subject});
     }
     
     # process message
@@ -79,19 +82,19 @@ sub send {
         # multipart send using plain text and html
         if (lc($options->{type}) eq 'multi') {
             if (ref($options->{message}) eq "HASH") {
-                $self->html_body($options->{message}->{html})
+                $stuff->html_body($options->{message}->{html})
                     if defined $options->{message}->{html};
-                $self->text_body($options->{message}->{text})
+                $stuff->text_body($options->{message}->{text})
                     if defined $options->{message}->{text};
             }
         }
         else {
             # standard send using html or plain text
             if (lc($options->{type}) eq 'html') {
-                $self->html_body($options->{message});
+                $stuff->html_body($options->{message});
             }
             else {
-                $self->text_body($options->{message});
+                $stuff->text_body($options->{message});
             }
         }
     }
@@ -99,7 +102,7 @@ sub send {
     # process additional headers
     if ($options->{headers} && ref($options->{headers}) eq "HASH") {
         foreach my $header (keys %{ $options->{headers} }) {
-            $self->header( $header => $options->{headers}->{$header} );
+            $stuff->header( $header => $options->{headers}->{$header} );
         }
     }
     
@@ -108,67 +111,93 @@ sub send {
         if (ref($options->{attach}) eq "ARRAY") {
             my %files = @{$options->{attach}};
             foreach my $file (keys %files) {
-                $self->attach($file, 'filename' => $files{$file});
+                $files{$file} ? 
+                    $stuff->attach($file, 'filename' => $files{$file}) :
+                    $stuff->attach_file($file)
+                ;
             }
         }
     }
 
     # some light error handling
-    die 'email error: specify type multi if sending text and html'
-        if lc($options->{type}) eq 'multi' && "HASH" eq ref $options->{type};
+    die 'Email error: specify type multi if sending text and html'
+        if lc($options->{type}) eq 'multi' && "HASH" eq ref $options->{type}
+    ;
         
     # okay, go team, go
     if (defined $settings->{driver}) {
+        
         if (lc($settings->{driver}) eq lc("sendmail")) {
-            $self->{send_using} = ['Sendmail', $settings->{path}];
-            # failsafe
+            $stuff->{send_using} = ['Sendmail', $settings->{path}];
             
+            # failsafe
             $Email::Send::Sendmail::SENDMAIL = $settings->{path} if
                 defined $settings->{path};
-            
-            #$Email::Send::Sendmail::SENDMAIL = $settings->{path} unless
-            #    $Email::Send::Sendmail::SENDMAIL;
         }
+        
         if (lc($settings->{driver}) eq lc("smtp")) {
             if ($settings->{host} && $settings->{user} && $settings->{pass}) {
                 
-                my   @parameters = ();
-                push @parameters, 'Host' => $settings->{host} if $settings->{host};
-                push @parameters, 'Port'  => $settings->{port} if $settings->{port};
+                my @parameters = ();
+
+                push @parameters, 'Host' => $settings->{host}
+                    if $settings->{host};
                 
-                push @parameters, 'username' => $settings->{user} if $settings->{user};
-                push @parameters, 'password' => $settings->{pass} if $settings->{pass};
-                push @parameters, 'ssl'      => $settings->{ssl} if $settings->{ssl};
+                push @parameters, 'Port' => $settings->{port}
+                    if $settings->{port};
+
+                push @parameters, 'username' => $settings->{user}
+                    if $settings->{user};
                 
+                push @parameters, 'password' => $settings->{pass}
+                    if $settings->{pass};
+                
+                push @parameters, 'ssl' => $settings->{ssl}
+                    if $settings->{ssl};
+
+                 push @parameters, 'Debug' => 1 
+                    if $settings->{debug};
+
                 push @parameters, 'Proto' => 'tcp';
                 push @parameters, 'Reuse' => 1;
-                
-                push @parameters, 'Debug' => 1 if $settings->{debug};
-                
-                $self->{send_using} = ['SMTP', @parameters];
+                               
+                $stuff->{send_using} = ['SMTP', @parameters];
+
             }
             else {
-                $self->{send_using} = ['SMTP', Host => $settings->{host}];
+                $stuff->{send_using} = ['SMTP', Host => $settings->{host}];
             }
         }
+        
         if (lc($settings->{driver}) eq lc("qmail")) {
-            $self->{send_using} = ['Qmail', $settings->{path}];
+            $stuff->{send_using} = ['Qmail', $settings->{path}];
+            
             # fail safe
-            $Email::Send::Qmail::QMAIL = $settings->{path} unless
-                $Email::Send::Qmail::QMAIL;
+            $Email::Send::Qmail::QMAIL = $settings->{path} if
+                defined $settings->{path};
         }
+        
         if (lc($settings->{driver}) eq lc("nntp")) {
-            $self->{send_using} = ['NNTP', $settings->{host}];
+            $stuff->{send_using} = ['NNTP', $settings->{host}];
         }
-        my $email = $self->email or return undef;
+        
+        my $email = $stuff->email or return undef;
+        
         # die Dumper $email->as_string;
-        return $self->mailer->send( $email );
+        return $stuff->mailer->send( $email );
+    
     }
+    
     else {
-        $self->using(@arguments) if @arguments; # Arguments passed to ->using
-        my $email = $self->email or return undef;
-        return $self->mailer->send( $email );
+    
+        $stuff->using(@arguments) if @arguments; # Arguments passed to ->using
+        
+        my $email = $stuff->email or return undef;
+        
+        return $stuff->mailer->send( $email );
+    
     }
+
 };
 
 =head1 SYNOPSIS
@@ -200,8 +229,9 @@ sub send {
     
 Important Note! The default email format is plain-text, this can be changed to
 html by setting the option 'type' to 'html' in the hashref passed to the new
-function or email keyword. The following are options that can
-be passed within the hashref of arguments:
+function or email keyword. The following are options that can be passed 
+within the hashref of arguments to the keyword, constructor and/or the send 
+method:
 
     # send message to
     to => $email_recipient
@@ -239,6 +269,7 @@ be passed within the hashref of arguments:
     reply_to => 'other_email@website.com'
     
     # attach files to the email
+    # set attechment name to null to use the filename
     attach => [
         $file_location => $attachment_name,
     ]
@@ -273,7 +304,7 @@ are good that your Mail Transfer Agent (email system) is not setup properly.
         subject => '...',
         message => $msg,
         headers => {
-            "X-Mailer" => 'This fine application',
+            "X-Mailer" => 'SPAM-THE-WORLD-BOT 1.23456789',
             "X-Accept-Language" => 'en'
         }
     };
@@ -295,7 +326,7 @@ are good that your Mail Transfer Agent (email system) is not setup properly.
     {
         ...,
         driver  => 'smtp',
-        host    => 'smtp.website.com',
+        host    => 'smtp.googlemail.com',
         user    => 'account@gmail.com',
         pass    => '****'
     }
@@ -306,7 +337,7 @@ are good that your Mail Transfer Agent (email system) is not setup properly.
         ...,
         ssl     => 1,
         driver  => 'smtp',
-        host    => 'smtp.website.com',
+        host    => 'smtp.googlemail.com',
         port    => 465,
         user    => 'account@gmail.com',
         pass    => '****'
@@ -318,13 +349,13 @@ are good that your Mail Transfer Agent (email system) is not setup properly.
         ...,
         tls     => 1,
         driver  => 'smtp',
-        host    => 'smtp.website.com',
+        host    => 'smtp.googlemail.com',
         port    => 587,
         user    => 'account@gmail.com',
         pass    => '****'
     }
         
-    # Debug email server communications, prints negotiation to console
+    # Debug email server communications, prints negotiation to stdout
     
     {
         ...,
@@ -353,11 +384,10 @@ are good that your Mail Transfer Agent (email system) is not setup properly.
 
 =head1 DESCRIPTION
 
-Provides an easy way of handling text or html email messages with or without
-attachments. Simply define how you wish to send the email, then call the email
-keyword passing the necessary parameters as outlined above. This module is basically
-a wrapper around the unsupported and ____y/(____ie) email library Email::Stuff, which
-is now awesome thanks to me.
+Eailesque provides an easy way of handling text or html email messages with 
+or without attachments. Simply define how you wish to send the email, then 
+call the email keyword passing the necessary parameters as outlined above. 
+This module is basically a wrapper around the email interface Email::Stuffer.
 
 =cut
 

@@ -1,0 +1,71 @@
+==================================================
+Changes from 2012-06-07 00:00:00 +0000 to present.
+==================================================
+
+---------------------------------------------
+version 1.200000 at 2013-06-07 13:09:26 +0000
+---------------------------------------------
+
+  Change: a395795609fb9d8efdee712b129f2d531797a968
+  Author: Al Newkirk & Associates <github@alnewkirk.com>
+  Date : 2011-02-11 12:42:35 +0000
+
+    removed Test::Exception as unneccessary 
+
+  Change: f5532b15325dd5aa02b5a6aad144fd424eaa655e
+  Author: Al Newkirk <we@ana.im>
+  Date : 2011-01-21 23:06:34 +0000
+
+    fixed test: 02-rundown.t 
+
+  Change: df4d330c0d89e9d2a9115f9102da1daa7e816de3
+  Author: Al Newkirk <we@ana.im>
+  Date : 2011-01-21 22:58:03 +0000
+
+    added simple input validation, now reqs to, from, subject and msg 
+
+  Change: 300284199f21365aff5ca5249d74be29f0278d4b
+  Author: Al Newkirk <we@ana.im>
+  Date : 2011-01-21 22:48:04 +0000
+
+    fixed email addr parser operation 
+
+  Change: 839890e37f97c23a044fb8e15c71a8c59c4b45f6
+  Author: Al Newkirk <we@ana.im>
+  Date : 2011-01-20 20:17:04 +0000
+
+    fixed sendmail error 
+
+  Change: dd139865e81ac5d7dd27d9cdccbc7b74011baf66
+  Author: root <root@megatron.(none)>
+  Date : 2011-01-08 20:24:25 +0000
+
+    added proper (fixed) arg handling, added minimal testing 
+
+  Change: a2261c548cb31a782a57281ab02155ca4cec463b
+  Author: root <root@megatron.(none)>
+  Date : 2011-01-08 15:17:25 +0000
+
+    revised documentation, fixed to from cc and bcc email address parsing. 
+
+  Change: 196a2d29dd9b5fa05b8394a22424b082f0038cd1
+  Author: Al Newkirk <we@ana.im>
+  Date : 2010-12-30 22:43:37 +0000
+
+    configuration hashref parameter typo 
+
+  Change: 67155d37ca056f69884cf5a8208cf394a9323ad6
+  Author: Al Newkirk <we@ana.im>
+  Date : 2010-12-30 10:50:30 +0000
+
+    initial stable release 
+
+  Change: 7aff30316ec418881423b4ecc3a9b8fbf3cb49ed
+  Author: Al Newkirk <root@alnewkirk.com>
+  Date : 2010-12-29 14:00:54 +0000
+
+    initial commit 
+
+================
+End of releases.
+================
