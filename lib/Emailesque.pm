@@ -228,10 +228,9 @@ sub send {
     });
     
 Important Note! The default email format is plain-text, this can be changed to
-html by setting the option 'type' to 'html' in the hashref passed to the new
-function or email keyword. The following are options that can be passed 
-within the hashref of arguments to the keyword, constructor and/or the send 
-method:
+html by setting the option 'type' to 'html'. The following are options that 
+can be passed within the hashref of arguments to the keyword, constructor 
+and/or the send method:
 
     # send message to
     to => $email_recipient
@@ -280,7 +279,7 @@ method:
     }
     
 Please note that if you get an error using basic sendmail functionality, chances
-are good that your Mail Transfer Agent (email system) is not setup properly.
+are good that your MTA (Mail Transfer Agent) is not setup properly.
 
 =head1 USAGE EXAMPLES
 
@@ -384,9 +383,9 @@ are good that your Mail Transfer Agent (email system) is not setup properly.
 
 =head1 DESCRIPTION
 
-Eailesque provides an easy way of handling text or html email messages with 
-or without attachments. Simply define how you wish to send the email, then 
-call the email keyword passing the necessary parameters as outlined above. 
+Emailesque provides an easy way of handling text or html email messages 
+with or without attachments. Simply define how you wish to send the email, 
+thencall the email keyword passing the necessary parameters as outlined above. 
 This module is basically a wrapper around the email interface Email::Stuffer.
 
 =cut
