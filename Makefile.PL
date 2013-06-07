@@ -30,7 +30,7 @@ my %WriteMakefileArgs = (
     "Net::SSLeay" => 0
   },
   "TEST_REQUIRES" => {},
-  "VERSION" => "1.200000",
+  "VERSION" => "1.200001",
   "test" => {
     "TESTS" => "t/*.t"
   }
