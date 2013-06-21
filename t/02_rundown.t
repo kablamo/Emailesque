@@ -2,8 +2,8 @@ use strict;
 use warnings;
 use Test::More tests => 3;
 
-BEGIN { 
-	use_ok 'Emailesque', 'email'; 
+BEGIN {
+    use_ok 'Emailesque', 'email';
 }
 
 my $msg = {
@@ -23,4 +23,4 @@ ok $@, 'email with no args dies';
 
 eval { Emailesque->new->send() };
 
-ok $@, 'oo email with no args fails';
+ok $@, 'oo email with no args dies';
