@@ -13,6 +13,210 @@ use Hash::Merge;
 use Email::Stuffer;
 use Email::AddressParser;
 
+=head1 SYNOPSIS
+
+    use Emailesque;
+
+    email {
+        to      => '...',
+        from    => '...',
+        subject => '...',
+        message => '...',
+    };
+
+=head1 DESCRIPTION
+
+Emailesque provides an easy way of handling text or html email messages
+with or without attachments. Simply define how you wish to send the email,
+thencall the email keyword passing the necessary parameters as outlined above.
+This module is basically a wrapper around the email interface Email::Stuffer.
+The following is an example of the object-oriented interface:
+
+    use Emailesque;
+
+    Emailesque->new->send({
+        to      => '...',
+        from    => '...',
+        subject => '...',
+        message => '...',
+        attach  => [
+            'filename' => '/path/to/file'
+        ]
+    });
+
+The Emailesque object-oriented interface is designed to accept parameters at
+instatiation and when calling the send method. This allows you to build-up an
+email object with a few base parameters, then create and send multiple email
+messages by calling the send method with only the unique parameters. The
+following is an example of that:
+
+    use Emailesque;
+
+    my $email = Emailesque->new({
+        from    => '...',
+        subject => '...',
+        type    => 'html',
+        headers => {
+            "X-Mailer" => "MyApp-Newletter 0.019876"
+        }
+    });
+
+    for my $email (@emails) {
+        $email->send({
+            to      => $email,
+            message => custom_email_message_for($email),
+        });
+    }
+
+The default email format is plain-text, this can be changed to html by setting
+the option 'type' to 'html'. The following are options that can be passed within
+the hashref of arguments to the keyword, constructor and/or the send method:
+
+    # send message to
+    to => $email_recipient
+
+    # send messages from
+    from => $mail_sender
+
+    # email subject
+    subject => 'email subject line'
+
+    # message body (must set type to multi)
+    message => 'html or plain-text data'
+    message => {
+        text => $text_message,
+        html => $html_messase,
+    }
+
+    # email message content type
+    type => 'text'
+    type => 'html'
+    type => 'multi'
+
+    # carbon-copy other email addresses
+    cc => 'user@site.com'
+    cc => 'user_a@site.com, user_b@site.com, user_c@site.com'
+
+    # blind carbon-copy other email addresses
+    bcc => 'user@site.com'
+    bcc => 'user_a@site.com, user_b@site.com, user_c@site.com'
+
+    # specify where email responses should be directed
+    reply_to => 'other_email@website.com'
+
+    # attach files to the email
+    # set attechment name to undef to use the filename
+    attach => [
+        $filepath => $filename,
+    ]
+
+    # send additional (specialized) headers
+    headers => {
+        "X-Mailer" => "SPAM-THE-WORLD-BOT 1.23456789"
+    }
+
+=head1 ADDITIONAL EXAMPLES
+
+    # Handle Email Failures
+
+    my $msg = email {
+            to      => '...',
+            subject => '...',
+            message => $msg,
+            attach  => [
+                '/path/to/file' => 'filename'
+            ]
+        };
+
+    die $msg unless $msg;
+
+    # Add More Email Headers
+
+    email {
+        to      => '...',
+        subject => '...',
+        message => $msg,
+        headers => {
+            "X-Mailer" => 'SPAM-THE-WORLD-BOT 1.23456789',
+            "X-Accept-Language" => 'en'
+        }
+    };
+
+    # Send Text and HTML Email together
+
+    email {
+        to      => '...',
+        subject => '...',
+        type    => 'multi',
+        message => {
+            text => $txt,
+            html => $html,
+        }
+    };
+
+    # Send mail via SMTP with SASL authentication
+
+    {
+        ...,
+        driver  => 'smtp',
+        host    => 'smtp.googlemail.com',
+        user    => 'account@gmail.com',
+        pass    => '****'
+    }
+
+    # Send mail to/from Google (gmail)
+
+    {
+        ...,
+        ssl     => 1,
+        driver  => 'smtp',
+        host    => 'smtp.googlemail.com',
+        port    => 465,
+        user    => 'account@gmail.com',
+        pass    => '****'
+    }
+
+    # Send mail to/from Google (gmail) using TLS
+
+    {
+        ...,
+        tls     => 1,
+        driver  => 'smtp',
+        host    => 'smtp.googlemail.com',
+        port    => 587,
+        user    => 'account@gmail.com',
+        pass    => '****'
+    }
+
+    # Debug email server communications, prints negotiation to STDOUT
+
+    {
+        ...,
+        debug => 1
+    }
+
+    # Set headers to be issued with message
+
+    {
+        ...,
+        from => '...',
+        subject => '...',
+        headers => {
+            'X-Mailer' => 'MyApp 1.0',
+            'X-Accept-Language' => 'en'
+        }
+    }
+
+    # Send email using sendmail, path is optional
+
+    {
+        ...,
+        driver  => 'sendmail',
+        path    => '/usr/bin/sendmail',
+    }
+
+=cut
+
 sub new {
     my $class = shift;
     my $attributes = shift;
@@ -193,188 +397,5 @@ sub send {
 
     }
 };
-
-=head1 SYNOPSIS
-
-    use Emailesque;
-
-    email {
-        to      => '...',
-        from    => '...',
-        subject => '...',
-        message => '...',
-    };
-
-=head1 DESCRIPTION
-
-Emailesque provides an easy way of handling text or html email messages
-with or without attachments. Simply define how you wish to send the email,
-thencall the email keyword passing the necessary parameters as outlined above.
-This module is basically a wrapper around the email interface Email::Stuffer.
-The following is an example of the object-oriented interface:
-
-    use Emailesque;
-
-    Emailesque->new->send({
-        to      => '...',
-        from    => '...',
-        subject => '...',
-        message => '...',
-        attach  => [
-            '/path/to/file' => 'filename'
-        ]
-    });
-
-The default email format is plain-text, this can be changed to html by setting
-the option 'type' to 'html'. The following are options that can be passed within
-the hashref of arguments to the keyword, constructor and/or the send method:
-
-    # send message to
-    to => $email_recipient
-
-    # send messages from
-    from => $mail_sender
-
-    # email subject
-    subject => 'email subject line'
-
-    # message body
-    message => 'html or plain-text data'
-    message => {
-        text => $text_message,
-        html => $html_messase,
-        # type must be 'multi'
-    }
-
-    # email message content type
-    type => 'text'
-    type => 'html'
-    type => 'multi'
-
-    # carbon-copy other email addresses
-    cc => 'user@site.com'
-    cc => 'user_a@site.com, user_b@site.com, user_c@site.com'
-    cc => join ', ', @email_addresses
-
-    # blind carbon-copy other email addresses
-    bcc => 'user@site.com'
-    bcc => 'user_a@site.com, user_b@site.com, user_c@site.com'
-    bcc => join ', ', @email_addresses
-
-    # specify where email responses should be directed
-    reply_to => 'other_email@website.com'
-
-    # attach files to the email
-    # set attechment name to null to use the filename
-    attach => [
-        $file_location => $attachment_name,
-    ]
-
-    # send additional (specialized) headers
-    headers => {
-        "X-Mailer" => "SPAM-THE-WORLD-BOT 1.23456789"
-    }
-
-=head1 ADDITIONAL EXAMPLES
-
-    # Handle Email Failures
-
-    my $msg = email {
-            to      => '...',
-            subject => '...',
-            message => $msg,
-            attach  => [
-                '/path/to/file' => 'filename'
-            ]
-        };
-
-    die $msg unless $msg;
-
-    # Add More Email Headers
-
-    email {
-        to      => '...',
-        subject => '...',
-        message => $msg,
-        headers => {
-            "X-Mailer" => 'SPAM-THE-WORLD-BOT 1.23456789',
-            "X-Accept-Language" => 'en'
-        }
-    };
-
-    # Send Text and HTML Email together
-
-    email {
-        to      => '...',
-        subject => '...',
-        type    => 'multi',
-        message => {
-            text => $txt,
-            html => $html,
-        }
-    };
-
-    # Send mail via SMTP with SASL authentication
-
-    {
-        ...,
-        driver  => 'smtp',
-        host    => 'smtp.googlemail.com',
-        user    => 'account@gmail.com',
-        pass    => '****'
-    }
-
-    # Send mail to/from Google (gmail)
-
-    {
-        ...,
-        ssl     => 1,
-        driver  => 'smtp',
-        host    => 'smtp.googlemail.com',
-        port    => 465,
-        user    => 'account@gmail.com',
-        pass    => '****'
-    }
-
-    # Send mail to/from Google (gmail) using TLS
-
-    {
-        ...,
-        tls     => 1,
-        driver  => 'smtp',
-        host    => 'smtp.googlemail.com',
-        port    => 587,
-        user    => 'account@gmail.com',
-        pass    => '****'
-    }
-
-    # Debug email server communications, prints negotiation to STDOUT
-
-    {
-        ...,
-        debug => 1
-    }
-
-    # Set headers to be issued with message
-
-    {
-        ...,
-        from => '...',
-        subject => '...',
-        headers => {
-            'X-Mailer' => 'MyApp 1.0',
-            'X-Accept-Language' => 'en'
-        }
-    }
-
-    # Send email using sendmail, path is optional
-
-    {
-        ...,
-        driver  => 'sendmail',
-        path    => '/usr/bin/sendmail',
-    }
-
-=cut
 
 1;

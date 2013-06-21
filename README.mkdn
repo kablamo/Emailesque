@@ -4,7 +4,7 @@ Emailesque - Lightweight To-The-Point Email
 
 # VERSION
 
-version 1.200002
+version 1.200003
 
 # SYNOPSIS
 
@@ -33,9 +33,33 @@ The following is an example of the object-oriented interface:
         subject => '...',
         message => '...',
         attach  => [
-            '/path/to/file' => 'filename'
+            'filename' => '/path/to/file'
         ]
     });
+
+The Emailesque object-oriented interface is designed to accept parameters at
+instatiation and when calling the send method. This allows you to build-up an
+email object with a few base parameters, then create and send multiple email
+messages by calling the send method with only the unique parameters. The
+following is an example of that:
+
+    use Emailesque;
+
+    my $email = Emailesque->new({
+        from    => '...',
+        subject => '...',
+        type    => 'html',
+        headers => {
+            "X-Mailer" => "MyApp-Newletter 0.019876"
+        }
+    });
+
+    for my $email (@emails) {
+        $email->send({
+            to      => $email,
+            message => custom_email_message_for($email),
+        });
+    }
 
 The default email format is plain-text, this can be changed to html by setting
 the option 'type' to 'html'. The following are options that can be passed within
@@ -50,12 +74,11 @@ the hashref of arguments to the keyword, constructor and/or the send method:
     # email subject
     subject => 'email subject line'
 
-    # message body
+    # message body (must set type to multi)
     message => 'html or plain-text data'
     message => {
         text => $text_message,
         html => $html_messase,
-        # type must be 'multi'
     }
 
     # email message content type
@@ -66,20 +89,18 @@ the hashref of arguments to the keyword, constructor and/or the send method:
     # carbon-copy other email addresses
     cc => 'user@site.com'
     cc => 'user_a@site.com, user_b@site.com, user_c@site.com'
-    cc => join ', ', @email_addresses
 
     # blind carbon-copy other email addresses
     bcc => 'user@site.com'
     bcc => 'user_a@site.com, user_b@site.com, user_c@site.com'
-    bcc => join ', ', @email_addresses
 
     # specify where email responses should be directed
     reply_to => 'other_email@website.com'
 
     # attach files to the email
-    # set attechment name to null to use the filename
+    # set attechment name to undef to use the filename
     attach => [
-        $file_location => $attachment_name,
+        $filepath => $filename,
     ]
 
     # send additional (specialized) headers
