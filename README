@@ -2,7 +2,7 @@ NAME
     Emailesque - Lightweight To-The-Point Email
 
 VERSION
-    version 1.200003
+    version 1.200004
 
 SYNOPSIS
         use Emailesque;
@@ -109,7 +109,7 @@ DESCRIPTION
 ADDITIONAL EXAMPLES
         # Handle Email Failures
 
-        my $msg = email {
+        my $result = email {
                 to      => '...',
                 subject => '...',
                 message => $msg,
@@ -118,7 +118,7 @@ ADDITIONAL EXAMPLES
                 ]
             };
 
-        die $msg unless $msg;
+        die $result->message if ref $result =~ /failure/i;
 
         # Add More Email Headers
 
@@ -164,25 +164,6 @@ ADDITIONAL EXAMPLES
             port    => 465,
             user    => 'account@gmail.com',
             pass    => '****'
-        }
-
-        # Send mail to/from Google (gmail) using TLS
-
-        {
-            ...,
-            tls     => 1,
-            driver  => 'smtp',
-            host    => 'smtp.googlemail.com',
-            port    => 587,
-            user    => 'account@gmail.com',
-            pass    => '****'
-        }
-
-        # Debug email server communications, prints negotiation to STDOUT
-
-        {
-            ...,
-            debug => 1
         }
 
         # Set headers to be issued with message

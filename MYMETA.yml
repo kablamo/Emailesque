@@ -1,0 +1,28 @@
+---
+abstract: 'Lightweight To-The-Point Email'
+author:
+  - 'Al Newkirk <anewkirk@ana.io>'
+build_requires: {}
+configure_requires:
+  ExtUtils::MakeMaker: 6.30
+dynamic_config: 0
+generated_by: 'ExtUtils::MakeMaker version 6.68, CPAN::Meta::Converter version 2.130880'
+license: perl
+meta-spec:
+  url: http://module-build.sourceforge.net/META-spec-v1.4.html
+  version: 1.4
+name: Emailesque
+no_index:
+  directory:
+    - t
+    - inc
+requires:
+  Authen::SASL: 0
+  Email::AddressParser: 0
+  Email::Stuffer: 0
+  Hash::Merge: 0.12
+  IO::Socket::SSL: 0
+  Net::SMTP::SSL: 0
+  Net::SMTP::TLS: 0
+  Net::SSLeay: 0
+version: 1.200004

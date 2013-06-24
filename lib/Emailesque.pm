@@ -9,9 +9,12 @@ BEGIN {
     @EXPORT = qw(email);
 }
 
+use File::Slurp;
 use Hash::Merge;
-use Email::Stuffer;
 use Email::AddressParser;
+use Email::Sender::Transport::Sendmail;
+use Email::Sender::Transport::SMTP;
+use Email::Stuffer;
 
 =head1 SYNOPSIS
 
@@ -119,7 +122,7 @@ the hashref of arguments to the keyword, constructor and/or the send method:
 
     # Handle Email Failures
 
-    my $msg = email {
+    my $result = email {
             to      => '...',
             subject => '...',
             message => $msg,
@@ -128,7 +131,7 @@ the hashref of arguments to the keyword, constructor and/or the send method:
             ]
         };
 
-    die $msg unless $msg;
+    die $result->message if ref $result =~ /failure/i;
 
     # Add More Email Headers
 
@@ -176,25 +179,6 @@ the hashref of arguments to the keyword, constructor and/or the send method:
         pass    => '****'
     }
 
-    # Send mail to/from Google (gmail) using TLS
-
-    {
-        ...,
-        tls     => 1,
-        driver  => 'smtp',
-        host    => 'smtp.googlemail.com',
-        port    => 587,
-        user    => 'account@gmail.com',
-        pass    => '****'
-    }
-
-    # Debug email server communications, prints negotiation to STDOUT
-
-    {
-        ...,
-        debug => 1
-    }
-
     # Set headers to be issued with message
 
     {
@@ -231,8 +215,14 @@ sub email {
 }
 
 sub send {
+    my $self = shift;
+    my $stuff = $self->_prepare_send(@_);
+    return $stuff->send;
+}
+
+sub _prepare_send {
     my ($self, $options, @arguments)  = @_;
-    my $stuff = Email::Stuff->new;
+    my $stuff = Email::Stuffer->new;
     my $settings = $self->{settings};
 
     $options = Hash::Merge->new( 'LEFT_PRECEDENT' )->merge($options, $settings);
@@ -310,10 +300,13 @@ sub send {
         if (ref($options->{attach}) eq "ARRAY") {
             my %files = @{$options->{attach}};
             foreach my $file (keys %files) {
-                $files{$file} ?
-                    $stuff->attach($file, 'filename' => $files{$file}) :
-                    $stuff->attach_file($file)
-                ;
+                if ($files{$file}) {
+                    my $data = read_file($files{$file}, binmode => ':raw');
+                    $stuff->attach($data, name => $file, filename => $file);
+                }
+                else {
+                  $stuff->attach_file($file);
+                }
             }
         }
     }
@@ -324,78 +317,53 @@ sub send {
     ;
 
     # okay, go team, go
-    if (defined $settings->{driver}) {
+    if (!@arguments) {
+        if (lc($options->{driver}) eq lc("sendmail")) {
+            unless ($options->{path}) {
+                for ('/usr/bin/sendmail', '/usr/sbin/sendmail') {
+                    $options->{path} = $_ if -f $_
+                }
+            }
 
-        if (lc($settings->{driver}) eq lc("sendmail")) {
-            $stuff->{send_using} = ['Sendmail', $settings->{path}];
-
-            # failsafe
-            $Email::Send::Sendmail::SENDMAIL = $settings->{path} if
-                defined $settings->{path};
+            $options->{path} ||= '';
+            $stuff->transport('Sendmail' => (sendmail => $options->{path}));
         }
 
-        if (lc($settings->{driver}) eq lc("smtp")) {
-            if ($settings->{host} && $settings->{user} && $settings->{pass}) {
-
+        if (lc($options->{driver}) eq lc("smtp")) {
+            if ($options->{host} && $options->{user} && $options->{pass}) {
                 my @parameters = ();
 
-                push @parameters, 'Host' => $settings->{host}
-                    if $settings->{host};
+                push @parameters, 'host' => $options->{host}
+                    if $options->{host};
 
-                push @parameters, 'Port' => $settings->{port}
-                    if $settings->{port};
+                push @parameters, 'port' => $options->{port}
+                    if $options->{port};
 
-                push @parameters, 'username' => $settings->{user}
-                    if $settings->{user};
+                push @parameters, 'sasl_username' => $options->{user}
+                    if $options->{user};
 
-                push @parameters, 'password' => $settings->{pass}
-                    if $settings->{pass};
+                push @parameters, 'sasl_password' => $options->{pass}
+                    if $options->{pass};
 
-                push @parameters, 'ssl' => $settings->{ssl}
-                    if $settings->{ssl};
+                push @parameters, 'ssl' => $options->{ssl}
+                    if $options->{ssl};
 
-                 push @parameters, 'Debug' => 1
-                    if $settings->{debug};
+                push @parameters, 'proto' => 'tcp'; # no longer used
+                push @parameters, 'reuse' => 1;     # no longer used
 
-                push @parameters, 'Proto' => 'tcp';
-                push @parameters, 'Reuse' => 1;
-
-                $stuff->{send_using} = ['SMTP', @parameters];
-
+                $stuff->transport('SMTP' => @parameters);
             }
             else {
-                $stuff->{send_using} = ['SMTP', Host => $settings->{host}];
+                $stuff->transport('SMTP' => (host => $options->{host}));
             }
         }
-
-        if (lc($settings->{driver}) eq lc("qmail")) {
-            $stuff->{send_using} = ['Qmail', $settings->{path}];
-
-            # fail safe
-            $Email::Send::Qmail::QMAIL = $settings->{path} if
-                defined $settings->{path};
-        }
-
-        if (lc($settings->{driver}) eq lc("nntp")) {
-            $stuff->{send_using} = ['NNTP', $settings->{host}];
-        }
-
-        my $email = $stuff->email or return undef;
-
-        # die Dumper $email->as_string;
-        return $stuff->mailer->send( $email );
-
     }
 
     else {
-
-        $stuff->using(@arguments) if @arguments; # Arguments passed to ->using
-
-        my $email = $stuff->email or return undef;
-
-        return $stuff->mailer->send( $email );
-
+        $stuff->transport(@arguments) if @arguments; # arguments passed to ->using
     }
-};
+
+    return $stuff;
+}
 
 1;

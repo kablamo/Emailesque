@@ -4,7 +4,7 @@ Emailesque - Lightweight To-The-Point Email
 
 # VERSION
 
-version 1.200003
+version 1.200004
 
 # SYNOPSIS
 
@@ -112,7 +112,7 @@ the hashref of arguments to the keyword, constructor and/or the send method:
 
     # Handle Email Failures
 
-    my $msg = email {
+    my $result = email {
             to      => '...',
             subject => '...',
             message => $msg,
@@ -121,7 +121,7 @@ the hashref of arguments to the keyword, constructor and/or the send method:
             ]
         };
 
-    die $msg unless $msg;
+    die $result->message if ref $result =~ /failure/i;
 
     # Add More Email Headers
 
@@ -167,25 +167,6 @@ the hashref of arguments to the keyword, constructor and/or the send method:
         port    => 465,
         user    => 'account@gmail.com',
         pass    => '****'
-    }
-
-    # Send mail to/from Google (gmail) using TLS
-
-    {
-        ...,
-        tls     => 1,
-        driver  => 'smtp',
-        host    => 'smtp.googlemail.com',
-        port    => 587,
-        user    => 'account@gmail.com',
-        pass    => '****'
-    }
-
-    # Debug email server communications, prints negotiation to STDOUT
-
-    {
-        ...,
-        debug => 1
     }
 
     # Set headers to be issued with message
