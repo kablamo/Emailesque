@@ -4,7 +4,7 @@ Emailesque - Lightweight To-The-Point Email
 
 # VERSION
 
-version 1.200004
+version 1.200005
 
 # SYNOPSIS
 

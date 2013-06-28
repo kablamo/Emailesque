@@ -4,7 +4,7 @@ package Emailesque;
 
 BEGIN {
     use Exporter();
-    use vars qw( @ISA @EXPORT @EXPORT_OK );
+    use vars qw(@ISA @EXPORT @EXPORT_OK);
     @ISA    = qw( Exporter );
     @EXPORT = qw(email);
 }
@@ -15,6 +15,8 @@ use Email::AddressParser;
 use Email::Sender::Transport::Sendmail;
 use Email::Sender::Transport::SMTP;
 use Email::Stuffer;
+
+# VERSION
 
 =head1 SYNOPSIS
 
@@ -211,7 +213,7 @@ sub new {
 }
 
 sub email {
-    return Emailesque->new(@_)->send({});
+    return Emailesque->new(shift)->send(@_);
 }
 
 sub send {
