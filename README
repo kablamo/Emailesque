@@ -2,7 +2,7 @@ NAME
     Emailesque - Lightweight To-The-Point Email
 
 VERSION
-    version 1.200005
+    version 1.200006
 
 SYNOPSIS
         use Emailesque;
