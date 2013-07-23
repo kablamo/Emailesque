@@ -1,26 +1,28 @@
 use strict;
 use warnings;
-use Test::More tests => 3;
+use Test::More;
+use t::lib::Test::Emailesque;
 
-BEGIN {
-    use_ok 'Emailesque', 'email';
+sub can_email {
+    my $t = Test::Emailesque->new;
+    ok $t->test_function($_[0]), 'Emailesque::email(...) ok';
+    ok $t->test_method($_[0]),   'Emailesque->new->send(...) ok';
 }
 
-my $msg = {
+sub cant_email {
+    my $t = Test::Emailesque->new;
+    ok ! $t->test_function($_[0]), 'Emailesque::email(...) not ok';
+    ok ! $t->test_method($_[0]),   'Emailesque->new->send(...) not ok';
+}
+
+ok ! eval { email() } && $@, 'email with no args dies';
+ok ! eval { Emailesque->new->send() } && $@, 'oo email with no args dies';
+
+can_email {
     to      => 'recipient@nowhere.example.net',
     from    => 'sender@emailesque.example.com',
+    subject => 'This is strange',
     message => 'You will never receive this',
-    path    => '/usr/sbin/sendmail',
 };
 
-eval { email() };
-
-# using email keyword
-
-ok $@, 'email with no args dies';
-
-# using OO style
-
-eval { Emailesque->new->send() };
-
-ok $@, 'oo email with no args dies';
+done_testing;

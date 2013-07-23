@@ -4,7 +4,7 @@ Emailesque - Lightweight To-The-Point Email
 
 # VERSION
 
-version 1.200006
+version 1.200007
 
 # SYNOPSIS
 
@@ -121,7 +121,7 @@ the hashref of arguments to the keyword, constructor and/or the send method:
             ]
         };
 
-    die $result->message if ref $result =~ /failure/i;
+    die $result->message if ref($result) =~ /failure/i;
 
     # Add More Email Headers
 

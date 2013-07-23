@@ -133,7 +133,7 @@ the hashref of arguments to the keyword, constructor and/or the send method:
             ]
         };
 
-    die $result->message if ref $result =~ /failure/i;
+    die $result->message if ref($result) =~ /failure/i;
 
     # Add More Email Headers
 
@@ -205,20 +205,22 @@ the hashref of arguments to the keyword, constructor and/or the send method:
 
 sub new {
     my $class = shift;
-    my $attributes = shift;
+    my $attributes = shift || {};
 
     $attributes->{driver} = 'sendmail' unless defined $attributes->{driver};
+    $attributes->{type}   = 'html' unless defined $attributes->{type};
 
     return bless { settings => $attributes }, $class;
 }
 
 sub email {
-    return Emailesque->new(shift)->send(@_);
+    return Emailesque->new->send(@_);
 }
 
 sub send {
     my $self = shift;
     my $stuff = $self->_prepare_send(@_);
+
     return $stuff->send;
 }
 
@@ -315,10 +317,13 @@ sub _prepare_send {
         }
     }
 
-    # some light error handling
-    die 'Email error: specify type multi if sending text and html'
-        if lc($options->{type}) eq 'multi' && "HASH" eq ref $options->{type}
-    ;
+    # check multi-type email messages
+    if (lc($options->{type}) eq 'multi') {
+        die 'Email error: specify type multi if sending text and html'
+            unless "HASH" eq ref $options->{message}
+                && exists $options->{message}->{text}
+                && exists $options->{message}->{html};
+    }
 
     # okay, go team, go
     if (!@arguments) {
@@ -364,7 +369,7 @@ sub _prepare_send {
     }
 
     else {
-        $stuff->transport(@arguments) if @arguments; # arguments passed to ->using
+        $stuff->transport(@arguments) if @arguments;
     }
 
     return $stuff;
