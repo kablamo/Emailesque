@@ -264,7 +264,7 @@ sub _prepare_send {
 
     # process reply_to
     if ($options->{reply_to}) {
-        $stuff->header("Return-Path" => $options->{reply_to});
+        $stuff->header("Reply-to" => $options->{reply_to});
     }
 
     # process subject
