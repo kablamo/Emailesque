@@ -1,6 +1,7 @@
 Changelog for Emailesque
 
-1.200008 2014-08-21T08:52:17
+1.200008 2014-08-21T08:56:22
+ - Updated POD, README, and Makefile.
  - Fix incorrect use of return-path header for directing replies
 
 1.200007 2013-07-23T13:30:19
