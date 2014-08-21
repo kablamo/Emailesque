@@ -4,7 +4,11 @@ Emailesque - Lightweight To-The-Point Email
 
 # VERSION
 
-version 1.200007
+version 1.200008
+
+# STATUS
+
+<a href="https://travis-ci.org/alnewkirk/Emailesque"><img src="https://travis-ci.org/alnewkirk/Emailesque.svg?branch=master"></a>
 
 # SYNOPSIS
 
