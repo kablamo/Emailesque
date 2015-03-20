@@ -110,9 +110,9 @@ the hashref of arguments to the keyword, constructor and/or the send method:
     reply_to => 'other_email@website.com'
 
     # attach files to the email
-    # set attechment name to undef to use the filename
+    # set attachment name to undef to use the filename
     attach => [
-        $filepath => $filename,
+        $filename => $filepath,
     ]
 
     # send additional (specialized) headers
@@ -129,7 +129,7 @@ the hashref of arguments to the keyword, constructor and/or the send method:
             subject => '...',
             message => $msg,
             attach  => [
-                '/path/to/file' => 'filename'
+                'filename' => '/path/to/file'
             ]
         };
 
