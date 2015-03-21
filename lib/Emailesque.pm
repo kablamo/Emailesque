@@ -110,10 +110,12 @@ the hashref of arguments to the keyword, constructor and/or the send method:
     reply_to => 'other_email@website.com'
 
     # attach files to the email
-    # set attechment name to undef to use the filename
     attach => [
         $filepath => $filename,
     ]
+
+    # attach files to the email - use the filename
+    files => [ '/path/to/a', '/path/to/b', ... ]
 
     # send additional (specialized) headers
     headers => {
@@ -313,6 +315,16 @@ sub _prepare_send {
                 else {
                   $stuff->attach_file($file);
                 }
+            }
+        }
+    }
+
+    # process attachments
+    if ($options->{files}) {
+        if (ref($options->{files}) eq "ARRAY") {
+            my $files = $options->{files};
+            foreach my $file (@$files) {
+                $stuff->attach_file($file);
             }
         }
     }
