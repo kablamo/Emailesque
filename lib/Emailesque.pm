@@ -112,7 +112,7 @@ the hashref of arguments to the keyword, constructor and/or the send method:
     # attach files to the email
     # set attachment name to undef to use the filename
     attach => [
-        $filename => $filepath,
+        $filepath => undef,
     ]
 
     # send additional (specialized) headers
